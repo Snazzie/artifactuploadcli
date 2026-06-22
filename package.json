@@ -1,7 +1,7 @@
 {
   "name": "@snazzieslab/artifactuploadcli",
   "version": "1.0.0",
-  "description": "Share a file via a terminal QR code — upload to Cloudflare R2, or serve it over your local network. No R2 needed for LAN serving.",
+  "description": "Share a file via a terminal QR code — upload to any S3-compatible storage (Cloudflare R2, AWS S3, MinIO, …), or serve it over your local network.",
   "type": "module",
   "bin": {
     "artifactuploadcli": "dist/index.js"
