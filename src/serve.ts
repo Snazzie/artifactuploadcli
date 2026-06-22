@@ -1,5 +1,8 @@
+import { createServer } from "node:http";
+import type { Server } from "node:http";
 import { networkInterfaces } from "node:os";
 import { basename } from "node:path";
+import { createReadStream } from "node:fs";
 import { stat } from "node:fs/promises";
 import { detectContentType } from "./upload.js";
 import type { ServeOptions, ServeResult } from "./types.js";
@@ -23,9 +26,27 @@ function encodePathSegment(name: string): string {
   return encodeURIComponent(name);
 }
 
+/** Try to bind one port; resolves on `listening`, rejects on error (e.g. EADDRINUSE). */
+function listen(server: Server, port: number): Promise<void> {
+  return new Promise((resolve, reject) => {
+    const onError = (err: unknown): void => {
+      server.off("listening", onListening);
+      reject(err);
+    };
+    const onListening = (): void => {
+      server.off("error", onError);
+      resolve();
+    };
+    server.once("error", onError);
+    server.once("listening", onListening);
+    server.listen(port, "0.0.0.0");
+  });
+}
+
 /**
  * Serve a single file over HTTP on the LAN until the process is killed.
  * Tries the requested port, then auto-falls back to the next free port.
+ * Supports HTTP Range requests (206) so large downloads can resume.
  * Resolves once the server is listening; the returned server keeps running.
  */
 export async function serveFile(options: ServeOptions): Promise<ServeResult> {
@@ -36,32 +57,55 @@ export async function serveFile(options: ServeOptions): Promise<ServeResult> {
 
   const host = options.host ?? detectLanAddress();
   const startPort = options.port ?? DEFAULT_PORT;
-  const file = Bun.file(filePath);
-
   const routePath = `/${encodePathSegment(fileName)}`;
 
-  const handler = (req: Request): Response => {
-    const url = new URL(req.url);
+  const server = createServer((req, res) => {
+    const url = new URL(req.url ?? "/", "http://localhost");
     if (url.pathname !== routePath && url.pathname !== "/") {
-      return new Response("Not found", { status: 404 });
+      res.writeHead(404, { "Content-Type": "text/plain" });
+      res.end("Not found");
+      return;
     }
-    // Bun streams Bun.file with Range/206 support automatically.
-    return new Response(file, {
-      headers: {
-        "Content-Type": contentType,
-        "Content-Disposition": `attachment; filename="${fileName}"`,
-      },
-    });
-  };
+
+    const baseHeaders: Record<string, string> = {
+      "Content-Type": contentType,
+      "Content-Disposition": `attachment; filename="${fileName}"`,
+      "Accept-Ranges": "bytes",
+    };
+
+    // Parse a single "bytes=start-end" range; ignore anything more exotic.
+    const range = req.headers.range;
+    const match = range ? /^bytes=(\d*)-(\d*)$/.exec(range) : null;
+    if (match) {
+      const startRaw = match[1];
+      const endRaw = match[2];
+      const start = startRaw ? Number(startRaw) : 0;
+      const end = endRaw ? Number(endRaw) : fileSizeBytes - 1;
+      if (Number.isNaN(start) || Number.isNaN(end) || start > end || end >= fileSizeBytes) {
+        res.writeHead(416, { "Content-Range": `bytes */${fileSizeBytes}` });
+        res.end();
+        return;
+      }
+      res.writeHead(206, {
+        ...baseHeaders,
+        "Content-Range": `bytes ${start}-${end}/${fileSizeBytes}`,
+        "Content-Length": String(end - start + 1),
+      });
+      createReadStream(filePath, { start, end }).pipe(res);
+      return;
+    }
+
+    res.writeHead(200, { ...baseHeaders, "Content-Length": String(fileSizeBytes) });
+    createReadStream(filePath).pipe(res);
+  });
 
   let lastErr: unknown;
   for (let i = 0; i < MAX_PORT_TRIES; i++) {
     const port = startPort + i;
     try {
-      const server = Bun.serve({ port, hostname: "0.0.0.0", fetch: handler });
-      const boundPort = server.port ?? port;
-      const downloadUrl = `http://${host}:${boundPort}${routePath}`;
-      return { server, downloadUrl, fileName, fileSizeBytes, port: boundPort };
+      await listen(server, port);
+      const downloadUrl = `http://${host}:${port}${routePath}`;
+      return { server, downloadUrl, fileName, fileSizeBytes, port };
     } catch (err) {
       lastErr = err;
       const code = (err as { code?: string }).code;

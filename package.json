@@ -4,14 +4,14 @@
   "description": "Upload files to Cloudflare R2 and display a QR code in the terminal",
   "type": "module",
   "bin": {
-    "artifactuploadcli": "src/index.ts"
+    "artifactuploadcli": "dist/index.js"
   },
   "files": [
-    "src",
+    "dist",
     "llms.txt"
   ],
   "engines": {
-    "bun": ">=1.0.0"
+    "node": ">=18"
   },
   "keywords": [
     "cloudflare",
@@ -30,7 +30,8 @@
   "scripts": {
     "check": "tsc --noEmit",
     "start": "bun src/index.ts",
-    "prepublishOnly": "tsc --noEmit"
+    "build": "bun build src/index.ts --target=node --outfile=dist/index.js",
+    "prepublishOnly": "tsc --noEmit && bun run build"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1073.0",

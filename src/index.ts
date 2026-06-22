@@ -1,4 +1,4 @@
-#!/usr/bin/env bun
+#!/usr/bin/env node
 import { parseArgs } from "node:util";
 import { existsSync } from "node:fs";
 import { basename, extname } from "node:path";
@@ -45,7 +45,7 @@ async function runServe(filePath: string, port: number | undefined, showQr: bool
   printServeInfo(result, showQr);
   // Keep the process alive until killed; stop the server cleanly on signals.
   const shutdown = (): void => {
-    result.server.stop();
+    result.server.close();
     process.exit(0);
   };
   process.on("SIGINT", shutdown);

@@ -26,7 +26,7 @@ export interface ServeOptions {
 }
 
 export interface ServeResult {
-  server: import("bun").Server<undefined>;
+  server: import("node:http").Server;
   downloadUrl: string;
   fileName: string;
   fileSizeBytes: number;
