@@ -24,9 +24,9 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Snazzie/artifactuploadcli.git"
+    "url": "git+https://github.com/SnazziesLab/artifactuploadcli.git"
   },
-  "homepage": "https://github.com/Snazzie/artifactuploadcli#readme",
+  "homepage": "https://github.com/SnazziesLab/artifactuploadcli#readme",
   "scripts": {
     "check": "tsc --noEmit",
     "start": "bun src/index.ts",
