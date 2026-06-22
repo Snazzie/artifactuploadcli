@@ -6,9 +6,31 @@
   "bin": {
     "artifactuploadcli": "src/index.ts"
   },
+  "files": [
+    "src",
+    "llms.txt"
+  ],
+  "engines": {
+    "bun": ">=1.0.0"
+  },
+  "keywords": [
+    "cloudflare",
+    "r2",
+    "upload",
+    "qrcode",
+    "cli",
+    "bun"
+  ],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Snazzie/artifactuploadcli.git"
+  },
+  "homepage": "https://github.com/Snazzie/artifactuploadcli#readme",
   "scripts": {
     "check": "tsc --noEmit",
-    "start": "bun src/index.ts"
+    "start": "bun src/index.ts",
+    "prepublishOnly": "tsc --noEmit"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1073.0",
