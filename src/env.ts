@@ -1,27 +1,29 @@
 import { config as dotenvConfig } from "dotenv";
 import { resolve } from "node:path";
-import type { R2Config } from "./types.js";
+import type { S3Config } from "./types.js";
 
 interface EnvOverrides {
   bucket?: string;
   publicUrl?: string;
+  endpoint?: string;
+  region?: string;
 }
 
-export function loadEnvConfig(overrides: EnvOverrides): R2Config {
+export function loadEnvConfig(overrides: EnvOverrides): S3Config {
   dotenvConfig({ path: resolve(process.cwd(), ".env") });
 
-  const accountId = process.env["R2_ACCOUNT_ID"];
-  const accessKeyId = process.env["R2_ACCESS_KEY_ID"];
-  const secretAccessKey = process.env["R2_SECRET_ACCESS_KEY"];
-  const bucket = overrides.bucket ?? process.env["R2_BUCKET"];
-  const publicUrl = overrides.publicUrl ?? process.env["R2_PUBLIC_URL"];
+  const accessKeyId = process.env["ASC_ACCESS_KEY_ID"];
+  const secretAccessKey = process.env["ASC_SECRET_ACCESS_KEY"];
+  const bucket = overrides.bucket ?? process.env["ASC_BUCKET"];
+  const publicUrl = overrides.publicUrl ?? process.env["ASC_PUBLIC_URL"];
+  const endpoint = overrides.endpoint ?? process.env["ASC_ENDPOINT"];
+  const region = overrides.region ?? process.env["ASC_REGION"] ?? "auto";
 
   const missing: string[] = [];
-  if (!accountId) missing.push("R2_ACCOUNT_ID");
-  if (!accessKeyId) missing.push("R2_ACCESS_KEY_ID");
-  if (!secretAccessKey) missing.push("R2_SECRET_ACCESS_KEY");
-  if (!bucket) missing.push("R2_BUCKET (or --bucket flag)");
-  if (!publicUrl) missing.push("R2_PUBLIC_URL (or --public-url flag)");
+  if (!accessKeyId) missing.push("ASC_ACCESS_KEY_ID");
+  if (!secretAccessKey) missing.push("ASC_SECRET_ACCESS_KEY");
+  if (!bucket) missing.push("ASC_BUCKET (or --bucket flag)");
+  if (!publicUrl) missing.push("ASC_PUBLIC_URL (or --public-url flag)");
 
   if (missing.length > 0) {
     console.error("\nMissing required configuration:");
@@ -31,7 +33,8 @@ export function loadEnvConfig(overrides: EnvOverrides): R2Config {
   }
 
   return {
-    accountId: accountId!,
+    endpoint,
+    region,
     accessKeyId: accessKeyId!,
     secretAccessKey: secretAccessKey!,
     bucket: bucket!,

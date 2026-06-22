@@ -1,10 +1,10 @@
 {
-  "name": "@snazzieslab/artifactuploadcli",
+  "name": "@snazzieslab/artifactservecli",
   "version": "1.0.0",
-  "description": "Share a file via a terminal QR code — upload to any S3-compatible storage (Cloudflare R2, AWS S3, MinIO, …), or serve it over your local network.",
+  "description": "Share a file via a terminal QR code — upload to any S3-compatible storage (AWS S3, MinIO, Cloudflare R2, …), or serve it over your local network.",
   "type": "module",
   "bin": {
-    "artifactuploadcli": "dist/index.js"
+    "artifactservecli": "dist/index.js"
   },
   "files": [
     "dist",
@@ -14,8 +14,7 @@
     "node": ">=18"
   },
   "keywords": [
-    "cloudflare",
-    "r2",
+    "s3",
     "upload",
     "qrcode",
     "cli",
@@ -24,9 +23,9 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/SnazziesLab/artifactuploadcli.git"
+    "url": "git+https://github.com/SnazziesLab/artifactservecli.git"
   },
-  "homepage": "https://github.com/SnazziesLab/artifactuploadcli#readme",
+  "homepage": "https://github.com/SnazziesLab/artifactservecli#readme",
   "scripts": {
     "check": "tsc --noEmit",
     "start": "bun src/index.ts",

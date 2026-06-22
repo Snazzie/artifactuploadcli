@@ -1,27 +1,29 @@
-# artifactuploadcli
+# artifactservecli
 
-> A Bun + TypeScript CLI that uploads a file to Cloudflare R2 (printing the public download URL as a terminal QR code), or serves a file over the local network with a QR code — no R2 needed for serving.
+> A Bun + TypeScript CLI that uploads a file to any S3-compatible storage (printing the public download URL as a terminal QR code), or serves a file over the local network with a QR code — no cloud config needed for serving.
 
 Runtime: **Bun** (not node). Source is TypeScript ESM run directly; there is no build step.
 
 ## Commands
 
 ```bash
-# Upload to R2, print URL + QR code
+# Upload to S3-compatible storage, print URL + QR code
 bun src/index.ts <file> [options]
 
-# Serve a file over the LAN until Ctrl+C (no R2 config needed)
+# Serve a file over the LAN until Ctrl+C (no cloud config needed)
 bun src/index.ts serve <file> [options]
 
 # If installed globally (bin name)
-artifactuploadcli <file> [options]
-artifactuploadcli serve <file> [options]
+artifactservecli <file> [options]
+artifactservecli serve <file> [options]
 ```
 
 ## Upload options
 
-- `-b, --bucket <name>` — R2 bucket (env: `R2_BUCKET`)
-- `-u, --public-url <url>` — public URL prefix (env: `R2_PUBLIC_URL`)
+- `-b, --bucket <name>` — bucket name (env: `ASC_BUCKET`)
+- `-u, --public-url <url>` — public URL prefix (env: `ASC_PUBLIC_URL`)
+- `-e, --endpoint <url>` — S3 endpoint URL (env: `ASC_ENDPOINT`, omit for AWS S3)
+- `-r, --region <name>` — S3 region (env: `ASC_REGION`, default: `auto`)
 - `-n, --name <name>` — remote object name (default: `{name}-{timestamp}{ext}`)
 - `--no-qr` — skip QR code
 - `-h, --help` — show help
@@ -36,11 +38,12 @@ artifactuploadcli serve <file> [options]
 Set in a `.env` file in the **current working directory** (gitignored), or pass as flags:
 
 ```
-R2_ACCOUNT_ID=...
-R2_ACCESS_KEY_ID=...
-R2_SECRET_ACCESS_KEY=...
-R2_BUCKET=...
-R2_PUBLIC_URL=https://...
+ASC_ACCESS_KEY_ID=...
+ASC_SECRET_ACCESS_KEY=...
+ASC_BUCKET=...
+ASC_PUBLIC_URL=https://...
+ASC_ENDPOINT=...   # optional; omit for AWS S3
+ASC_REGION=...     # optional; default: auto
 ```
 
 `serve` needs none of these — it only reads the file and binds a local port.
@@ -49,18 +52,18 @@ R2_PUBLIC_URL=https://...
 
 ```bash
 # Upload an APK and get a scannable download link
-artifactuploadcli ./app-release.apk
+artifactservecli ./app-release.apk
 
 # Upload with a fixed remote name, no QR
-artifactuploadcli ./build.ipa -n latest.ipa --no-qr
+artifactservecli ./build.ipa -n latest.ipa --no-qr
 
 # Share a file with someone on the same Wi-Fi
-artifactuploadcli serve ./video.mp4 -p 9000
+artifactservecli serve ./video.mp4 -p 9000
 ```
 
 ## Notes for agents
 
 - Always invoke with `bun` (per project convention); do not use `node` or `npm`.
 - Typecheck with `tsc --noEmit` (or `bun run check`). No tests, no emit.
-- The S3 client sets checksum calc to `WHEN_REQUIRED` — required for R2 compatibility; do not remove.
+- The S3 client sets checksum calc to `WHEN_REQUIRED` — required because some S3-compatible providers (e.g. Cloudflare R2) reject the AWS SDK's default flexible checksum headers; do not remove.
 - Source files import siblings with `.js` extensions despite being `.ts` (bundler moduleResolution + ESM).

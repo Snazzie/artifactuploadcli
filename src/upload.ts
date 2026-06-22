@@ -26,17 +26,18 @@ export function detectContentType(filePath: string): string {
   return MIME_MAP[ext] ?? "application/octet-stream";
 }
 
-export async function uploadToR2(options: UploadOptions): Promise<UploadResult> {
+export async function uploadToS3(options: UploadOptions): Promise<UploadResult> {
   const { config, filePath, remoteName, contentType } = options;
 
   const client = new S3Client({
-    region: "auto",
-    endpoint: `https://${config.accountId}.r2.cloudflarestorage.com`,
+    region: config.region,
+    ...(config.endpoint ? { endpoint: config.endpoint } : {}),
     credentials: {
       accessKeyId: config.accessKeyId,
       secretAccessKey: config.secretAccessKey,
     },
-    // R2 rejects flexible checksum headers that @aws-sdk v3.500+ sends by default
+    // Some S3-compatible providers (e.g. Cloudflare R2) reject the flexible
+    // checksum headers @aws-sdk v3.500+ sends by default.
     requestChecksumCalculation: "WHEN_REQUIRED",
     responseChecksumValidation: "WHEN_REQUIRED",
   });

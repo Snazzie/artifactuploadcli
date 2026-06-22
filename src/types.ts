@@ -1,5 +1,6 @@
-export interface R2Config {
-  accountId: string;
+export interface S3Config {
+  endpoint?: string;
+  region: string;
   accessKeyId: string;
   secretAccessKey: string;
   bucket: string;
@@ -7,7 +8,7 @@ export interface R2Config {
 }
 
 export interface UploadOptions {
-  config: R2Config;
+  config: S3Config;
   filePath: string;
   remoteName: string;
   contentType: string;
