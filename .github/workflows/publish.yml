@@ -25,11 +25,14 @@ jobs:
           node-version: 20
           registry-url: https://registry.npmjs.org
 
+      # Trusted Publishing (OIDC) needs npm >= 11.5.1; node 20 ships an older npm.
+      - run: npm install -g npm@latest
+
       - run: bun install --frozen-lockfile
 
       - run: bun run check
 
+      # No token: npm authenticates via the GitHub OIDC identity (id-token: write).
       # prepublishOnly (tsc + bun build) runs automatically before publish.
-      - run: npm publish --provenance --access public
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      # Trusted Publishing attaches provenance automatically.
+      - run: npm publish --access public
