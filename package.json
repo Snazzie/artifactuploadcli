@@ -1,7 +1,7 @@
 {
-  "name": "artifactuploadcli",
+  "name": "@snazzieslab/artifactuploadcli",
   "version": "1.0.0",
-  "description": "Upload files to Cloudflare R2 and display a QR code in the terminal",
+  "description": "Share a file via a terminal QR code — upload to Cloudflare R2, or serve it over your local network. No R2 needed for LAN serving.",
   "type": "module",
   "bin": {
     "artifactuploadcli": "dist/index.js"
